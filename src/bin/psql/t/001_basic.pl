@@ -385,6 +385,19 @@ SELECT 1 \watch c=3',
 	qr/1\n1\n1/, '\watch with 3 iterations, interval of 0');
 
 # Check \watch minimum row count
+psql_like(
+	$node,
+	'SELECT 123 \watch c=2 i=0 m=1',
+	qr/123\n123/,
+	'\watch prints both results when minimum row count is met');
+
+my ($watch_ret, $watch_stdout, $watch_stderr) =
+  $node->psql('postgres', 'SELECT 123 \watch c=2 i=0 m=2');
+is($watch_ret, 0, '\watch exits successfully when minimum row count is not met');
+my @watch_rows = ($watch_stdout =~ /^123$/mg);
+is(scalar @watch_rows, 1, '\watch prints the final result only once');
+is($watch_stderr, '', '\watch does not report an error below minimum row count');
+
 psql_fails_like(
 	$node,
 	'SELECT 3 \watch m=x',
