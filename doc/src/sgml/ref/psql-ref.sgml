@@ -3933,6 +3933,7 @@ SELECT 1 \bind \sendpipeline
         until interrupted, or the query fails, or the execution count limit
         (if given) is reached, or the query no longer returns the minimum number
         of rows. Wait the specified number of seconds (default 2) between executions.
+        The interval must be a finite number between 0 and 1000000 seconds.
         The default wait can be changed with the variable
         <xref linkend="app-psql-variables-watch-interval"/>.
         For backwards compatibility,

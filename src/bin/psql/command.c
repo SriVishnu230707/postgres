@@ -3433,7 +3433,8 @@ exec_command_watch(PsqlScanState scan_state, bool active_branch,
 						have_sleep = true;
 						errno = 0;
 						sleep = strtod(valptr, &opt_end);
-						if (sleep < 0 || *opt_end || errno == ERANGE)
+						if (!(sleep >= 0 && sleep <= DEFAULT_WATCH_INTERVAL_MAX) ||
+							opt_end == valptr || *opt_end || errno == ERANGE)
 						{
 							pg_log_error("\\watch: incorrect interval value \"%s\"", valptr);
 							success = false;
@@ -3499,7 +3500,8 @@ exec_command_watch(PsqlScanState scan_state, bool active_branch,
 					have_sleep = true;
 					errno = 0;
 					sleep = strtod(opt, &opt_end);
-					if (sleep < 0 || *opt_end || errno == ERANGE)
+					if (!(sleep >= 0 && sleep <= DEFAULT_WATCH_INTERVAL_MAX) ||
+						opt_end == opt || *opt_end || errno == ERANGE)
 					{
 						pg_log_error("\\watch: incorrect interval value \"%s\"", opt);
 						success = false;

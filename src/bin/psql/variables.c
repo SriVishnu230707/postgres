@@ -212,6 +212,12 @@ ParseVariableDouble(const char *value, const char *name, double *result, double 
 	dblval = strtod(value, &end);
 	if (errno == 0 && *end == '\0' && end != value)
 	{
+		if (isnan(dblval))
+		{
+			if (name)
+				pg_log_error("invalid value \"%s\" for variable \"%s\"", value, name);
+			return false;
+		}
 		if (dblval < min)
 		{
 			if (name)

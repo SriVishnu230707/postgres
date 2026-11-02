@@ -426,6 +426,21 @@ psql_fails_like(
 	'\watch, out-of-range interval');
 psql_fails_like(
 	$node,
+	'SELECT 1 \watch i=NaN',
+	qr/incorrect interval value "NaN"/,
+	'\watch, NaN interval');
+psql_fails_like(
+	$node,
+	'SELECT 1 \watch i=',
+	qr/incorrect interval value ""/,
+	'\watch, empty interval');
+psql_fails_like(
+	$node,
+	'SELECT 1 \watch 1000001',
+	qr/incorrect interval value "1000001"/,
+	'\watch, interval above timer limit');
+psql_fails_like(
+	$node,
 	'SELECT 1 \watch 1 1',
 	qr/interval value is specified more than once/,
 	'\watch, interval value is specified more than once');
@@ -452,6 +467,11 @@ psql_fails_like(
 	'\set WATCH_INTERVAL 1e500',
 	qr/is out of range/,
 	'WATCH_INTERVAL variable is out of range');
+psql_fails_like(
+	$node,
+	'\set WATCH_INTERVAL NaN',
+	qr/invalid value "NaN" for variable "WATCH_INTERVAL"/,
+	'WATCH_INTERVAL rejects NaN');
 psql_like($node, '\echo :WATCH_INTERVAL',
 	qr/^2$/m, 'WATCH_INTERVAL variable was not altered');
 
