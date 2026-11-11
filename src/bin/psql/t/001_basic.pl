@@ -384,6 +384,14 @@ psql_like(
 SELECT 1 \watch c=3',
 	qr/1\n1\n1/, '\watch with 3 iterations, interval of 0');
 
+# The largest accepted interval must not overflow the millisecond timer.
+# One iteration runs the query without waiting for that interval.
+psql_like(
+	$node,
+	'SELECT 1 \watch i=1000000 c=1',
+	qr/^1$/m,
+	'\watch accepts the maximum interval');
+
 # Check \watch minimum row count
 psql_fails_like(
 	$node,
@@ -426,6 +434,26 @@ psql_fails_like(
 	'\watch, out-of-range interval');
 psql_fails_like(
 	$node,
+	'SELECT 1 \watch i=NaN',
+	qr/incorrect interval value "NaN"/,
+	'\watch, NaN interval');
+psql_fails_like(
+	$node,
+	'SELECT 1 \watch Infinity',
+	qr/incorrect interval value "Infinity"/,
+	'\watch, infinite interval');
+psql_fails_like(
+	$node,
+	'SELECT 1 \watch i=',
+	qr/incorrect interval value ""/,
+	'\watch, empty interval');
+psql_fails_like(
+	$node,
+	'SELECT 1 \watch 1000001',
+	qr/incorrect interval value "1000001"/,
+	'\watch, interval above timer limit');
+psql_fails_like(
+	$node,
 	'SELECT 1 \watch 1 1',
 	qr/interval value is specified more than once/,
 	'\watch, interval value is specified more than once');
@@ -452,6 +480,16 @@ psql_fails_like(
 	'\set WATCH_INTERVAL 1e500',
 	qr/is out of range/,
 	'WATCH_INTERVAL variable is out of range');
+psql_fails_like(
+	$node,
+	'\set WATCH_INTERVAL NaN',
+	qr/invalid value "NaN" for variable "WATCH_INTERVAL"/,
+	'WATCH_INTERVAL rejects NaN');
+psql_fails_like(
+	$node,
+	'\set WATCH_INTERVAL Infinity',
+	qr/must be less than/,
+	'WATCH_INTERVAL rejects infinity');
 psql_like($node, '\echo :WATCH_INTERVAL',
 	qr/^2$/m, 'WATCH_INTERVAL variable was not altered');
 
